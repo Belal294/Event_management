@@ -104,6 +104,8 @@ def upcoming_events(request):
 
 
 
+
+
 def search_events(request):
     query = request.GET.get('q', '')  
     events = Event.objects.filter(
@@ -113,6 +115,47 @@ def search_events(request):
     )
 
     return render(request, 'events/event_list.html', {'events': events, 'query': query})
+
+
+
+def category_create(request):
+    if request.method == "POST":
+        form = CategoryForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('category_list')
+    else:
+        form = CategoryForm()
+    return render(request, 'events/category_form.html', {'form': form})
+
+
+
+def category_list(request):
+    categories = Category.objects.all()
+    return render(request, 'events/category_list.html', {'categories': categories})
+
+
+
+
+def category_update(request, pk):
+    category = get_object_or_404(Category, pk=pk)
+    if request.method == "POST":
+        form = CategoryForm(request.POST, instance=category)
+        if form.is_valid():
+            form.save()
+            return redirect('category_list')
+    else:
+        form = CategoryForm(instance=category)
+    return render(request, 'events/category_form.html', {'form': form})
+
+
+
+def category_delete(request, pk):
+    category = get_object_or_404(Category, pk=pk)
+    if request.method == "POST":
+        category.delete()
+        return redirect('category_list')
+    return render(request, 'events/category_confirm_delete.html', {'category': category})
 
 
 
