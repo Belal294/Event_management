@@ -71,11 +71,38 @@ class ParticipantForm(StyledFormMixin, forms.ModelForm):
 
 
 
+
+
+
+class StyledFormMixin:
+    def apply_styled_widgets(self):  
+        for field_name, field in self.fields.items():  
+            field.widget.attrs.update({
+                'class': 'w-full px-4 py-2 mt-2 text-sm text-gray-900 bg-white border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500'
+            })
+
+            if isinstance(field.widget, forms.Textarea):
+                field.widget.attrs.update({
+                    'class': 'w-full px-4 py-2 mt-2 text-sm text-gray-900 bg-white border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none'
+                })
+            elif isinstance(field.widget, forms.Select):
+                field.widget.attrs.update({
+                    'class': 'w-full px-4 py-2 mt-2 text-sm text-gray-900 bg-white border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 cursor-pointer'
+                })
+
+
+
+
 class CategoryForm(StyledFormMixin, forms.ModelForm):
     class Meta:
         model = Category
-        fields = '__all__'
+        fields = ['name', 'description']
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.apply_styled_widgets()
+        self.apply_styled_widgets()  
+
+
+
+
+        

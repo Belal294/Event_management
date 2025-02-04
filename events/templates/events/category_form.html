@@ -1,7 +1,35 @@
-<h2>{% if form.instance.pk %}Edit Category{% else %}New Category{% endif %}</h2>
-<form method="post">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">Save</button>
-</form>
-<a href="{% url 'category_list' %}">Back to List</a>
+{% extends "events/base.html" %}
+
+{% block title %} 
+    {% if form.instance.pk %}Edit Category{% else %}New Category{% endif %}
+{% endblock %}
+
+{% block content %}
+    <div class="max-w-lg mx-auto mt-10">
+        <h2 class="text-3xl font-bold text-white text-center mb-6">
+            {% if form.instance.pk %}Edit Category{% else %}New Category{% endif %}
+        </h2>
+
+        <div class="bg-gray-900 p-8 rounded-lg shadow-lg">
+            <form method="post" class="space-y-4">
+                {% csrf_token %}
+                
+                <div>
+                    <label for="{{ form.name.id_for_label }}" class="block text-gray-300 font-semibold">Name:</label>
+                    {{ form.name }}
+                </div>
+
+                <div>
+                    <label for="{{ form.description.id_for_label }}" class="block text-gray-300 font-semibold">Description:</label>
+                    {{ form.description }}
+                </div>
+
+                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition duration-200">
+                    Save
+                </button>
+            </form>
+
+            <a href="{% url 'category_list' %}" class="block text-center mt-4 text-blue-400 hover:text-blue-500">Back to List</a>
+        </div>
+    </div>
+{% endblock %}
