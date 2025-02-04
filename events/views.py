@@ -105,11 +105,6 @@ def category_delete(request, pk):
 
 
 
-from django.http import JsonResponse
-from .models import Event, Participant
-from datetime import date
-
-# Fetch event statistics
 def event_stats(request):
     total_events = Event.objects.count()
     total_participants = Participant.objects.count()
