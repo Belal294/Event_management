@@ -3,27 +3,31 @@
 {% block title %}Event List{% endblock %}
 
 {% block content %}
-<div class="flex justify-between items-center mb-6">
+<div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
     <h1 class="text-3xl font-bold text-white">Events</h1>
 
-    <form method="get" action="{% url 'search_events' %}" class="flex items-center">
-        <input type="text" name="q" value="{{ query }}" placeholder="Search by name or location" class="border p-2 rounded mr-2">
-        <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded">Search</button>
+    <form method="get" action="{% url 'search_events' %}" class="flex flex-col sm:flex-row items-center w-full sm:w-auto">
+        <input type="text" name="q" value="{{ query }}" placeholder="Search by name or location"
+            class="border p-2 rounded-md w-full sm:w-64 mb-2 sm:mb-0 sm:mr-2 focus:ring-2 focus:ring-blue-500">
+        <button type="submit"
+            class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition duration-200">
+            Search
+        </button>
     </form>
 </div>
 
-<ol class="grid grid-cols-3 gap-4 list-none">
+<ol class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
     {% for event in events %}
-    <li class="p-4 bg-slate-500 shadow-md rounded-lg transition transform hover:scale-105">
+    <li class="p-4 bg-slate-500 shadow-md rounded-lg transition transform hover:scale-105 hover:shadow-lg">
         <a href="{% url 'event_detail' event.id %}" class="block">
             <h2 class="text-xl font-bold text-white">{{ event.name }}</h2>
-            <p class=" text-white">{{ event.category.name }}</p>
-            <p class=" text-white">{{ event.participants.count }} Participants</p>
-            <span class="text-blue-500 font-semibold text-white">View Details</span>
+            <p class="text-white">{{ event.category.name }}</p>
+            <p class="text-white">{{ event.participants.count }} Participants</p>
+            <span class="text-blue-300 font-semibold hover:text-blue-400 transition">View Details</span>
         </a>
     </li>
     {% empty %}
-    <li class="text-gray-500">No events found.</li>
+    <li class="text-gray-500 col-span-full text-center">No events found.</li>
     {% endfor %}
 </ol>
 
