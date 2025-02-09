@@ -12,6 +12,7 @@ def sign_up(request):
         form = CustomRegistrationForm(request.POST)
         if form.is_valid():
             form.save()
+            return redirect('sign-in')
         else:
             print("Form is not valid")
     return render(request, 'registration/register.html', {"form": form})
