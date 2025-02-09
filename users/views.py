@@ -5,7 +5,6 @@ from django.contrib.auth import login, authenticate, logout
 from users.forms import CustomRegistrationForm, SignupForm
 from django.contrib.auth import login
 
-
 def sign_up(request):
     form = CustomRegistrationForm()
     if request.method == 'POST':
@@ -50,3 +49,5 @@ def signup_view(request):
     else:
         form = SignupForm()
     return render(request, "registration/signup.html", {"form":form})
+
+#fdskl;
