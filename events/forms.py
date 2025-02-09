@@ -72,8 +72,6 @@ class ParticipantForm(StyledFormMixin, forms.ModelForm):
 
 
 
-
-
 class StyledFormMixin:
     def apply_styled_widgets(self):  
         for field_name, field in self.fields.items():  
