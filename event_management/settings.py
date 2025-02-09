@@ -48,6 +48,23 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'event_management.urls'
 
+# TEMPLATES = [
+#     {
+#         'BACKEND': 'django.template.backends.django.DjangoTemplates',
+#         'DIRS': [],
+#         'APP_DIRS': True,
+#         'OPTIONS': {
+#             'context_processors': [
+#                 'django.template.context_processors.debug',
+#                 'django.template.context_processors.request',
+#                 'django.contrib.auth.context_processors.auth',
+#                 'django.contrib.messages.context_processors.messages',
+#             ],
+#         },
+#     },
+# ]
+
+
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -181,6 +198,6 @@ LOGOUT_REDIRECT_URL = "login"
 
 FRONTEND_URL = 'http://127.0.0.1:8000'
 LOGIN_URL = '/users/sign-in/'
-LOGIN_REDIRECT_URL = '/tasks/dashboard/'
+LOGIN_REDIRECT_URL = '/events/'
 LOGOUT_REDIRECT_URL = '/'
 

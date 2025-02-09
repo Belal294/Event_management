@@ -11,6 +11,8 @@ def sign_up(request):
         form = CustomRegistrationForm(request.POST)
         if form.is_valid():
             form.save()
+            return redirect('sign-in')
+            
         else:
             print("Form is not valid")
     return render(request, 'registration/register.html', {"form": form})
@@ -43,11 +45,9 @@ def signup_view(request):
             user = form.save(commit=False)
             user.set_password(form.cleaned_data["password"])
             user.save()
-            login(request,user)
-            return redirect("home")
+            return redirect("sign-in")
         
     else:
         form = SignupForm()
     return render(request, "registration/signup.html", {"form":form})
 
-#fdskl;

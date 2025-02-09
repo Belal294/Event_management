@@ -1,6 +1,5 @@
 from django.urls import path
 from .views import event_list, event_create, event_update,event_delete,event_detail,dashboard,filter_events,search_events,event_statistics,category_list,category_create,category_update,category_delete, event_stats
-
 from . import views
 
 urlpatterns = [
