@@ -19,6 +19,7 @@
     </style>
   </head>
   <body class="font-sans bg-gray-100">
+
     {% if request.user.is_authenticated %}
         {% include "logged_nav.html" %}
     {% else %}
@@ -27,6 +28,7 @@
     
     <main class="container mx-auto p-8 max-w-7xl">
       {% block content %}
+      
       {% endblock content %}
     </main>
 
@@ -40,10 +42,10 @@
           <div class="w-full md:w-1/4 mb-8 md:mb-0">
             <h4 class="text-lg font-semibold mb-4">Quick Links</h4>
             <ul class="text-gray-400 space-y-2">
-              <li><a href="#" class="hover:text-white">Home</a></li>
-              <li><a href="#" class="hover:text-white">Events</a></li>
-              <li><a href="#" class="hover:text-white">Categories</a></li>
-              <li><a href="#" class="hover:text-white">Contact</a></li>
+              <li><a href="{% url 'home' %}" class="hover:text-white">Home</a></li>
+              <li><a href=" {% url 'event_list' %} " class="hover:text-white">Events</a></li>
+              <li><a href="{% url 'category_list' %}" class="hover:text-white">Categories</a></li>
+              <li><a href="" class="hover:text-white">Contact</a></li>
             </ul>
           </div>
           <div class="w-full md:w-1/4">

@@ -1,5 +1,6 @@
 from django import forms 
 from .models import Event, Participant, Category
+from django.contrib.auth.models import User
 
 class StyledFormMixin:
     default_classes = "border-2 border-gray-300 p-3 rounded-lg shadow-sm focus:outline-none focus:border-rose-500 focus:ring-rose-500"
@@ -101,6 +102,13 @@ class CategoryForm(StyledFormMixin, forms.ModelForm):
         self.apply_styled_widgets()  
 
 
+
+class ParticipantForm(StyledFormMixin, forms.ModelForm):
+    password = forms.CharField(widget=forms.PasswordInput)
+
+    class Meta:
+        model = User
+        fields = ['username', 'email', 'password']
 
 
         

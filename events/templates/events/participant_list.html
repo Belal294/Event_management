@@ -1,0 +1,17 @@
+<h2>Participants List</h2>
+<table border="1">
+    <tr>
+        <th>Username</th>
+        <th>Email</th>
+        <th>Action</th>
+    </tr>
+    {% for user in participants %}
+    <tr>
+        <td>{{ user.username }}</td>
+        <td>{{ user.email }}</td>
+        <td>
+            <a href="{% url 'participant_delete' user.id %}">Delete</a>
+        </td>
+    </tr>
+    {% endfor %}
+</table>
