@@ -9,6 +9,7 @@ from django.contrib.auth.decorators import login_required
 from users.decorators import allowed_roles
 from django.contrib.auth.models import User, Group
 from django.contrib.auth.decorators import user_passes_test
+from django.db import connection
 
 # Event List View
 @login_required(login_url='login')
@@ -27,11 +28,12 @@ def event_list(request):
 
 # Event Create View
 @login_required(login_url='login')
-@allowed_roles(['Organizer', 'Admin'])
 def event_create(request):
     form = EventForm(request.POST or None)
     if form.is_valid():
         form.save()
+        connection.close()
+        
         return redirect('event_list')
     return render(request, 'events/event_form.html', {'form': form})
 # Event Update View
@@ -86,11 +88,9 @@ def event_statistics(request):
 
 # Category CRUD
 @login_required(login_url='login')
-@allowed_roles(['Organizer', 'Admin'])
 def category_list(request):
     return render(request, 'events/category_list.html', {'categories': Category.objects.all()})
 
-@allowed_roles(['Organizer', 'Admin'])
 def category_create(request):
     form = CategoryForm(request.POST or None)
     if form.is_valid():
@@ -98,7 +98,6 @@ def category_create(request):
         return redirect('category_list')
     return render(request, 'events/category_form.html', {'form': form})
 
-@allowed_roles(['Organizer', 'Admin'])
 def category_update(request, pk):
     category = get_object_or_404(Category, pk=pk)
     form = CategoryForm(request.POST or None, instance=category)
@@ -107,7 +106,6 @@ def category_update(request, pk):
         return redirect('category_list')
     return render(request, 'events/category_form.html', {'form': form})
 
-@allowed_roles(['Organizer', 'Admin'])
 def category_delete(request, pk):
     category = get_object_or_404(Category, pk=pk)
     if request.method == "POST":
@@ -146,13 +144,10 @@ def filter_events(request, event_type):
 
 
 
-# Participant Management (Admin Only)
-@allowed_roles(['Admin'])
 def participant_list(request):
     participants = User.objects.filter(groups__name="Participant")
-    return render(request, 'participants/participant_list.html', {'participants': participants})
+    return render(request, 'events/participant_list.html', {'participants': participants})
 
-@allowed_roles(['Admin'])
 def participant_create(request):
     form = ParticipantForm(request.POST or None)
     if form.is_valid():
@@ -162,15 +157,14 @@ def participant_create(request):
         participant_group = Group.objects.get(name="Participant")
         user.groups.add(participant_group)
         return redirect('participant_list')
-    return render(request, 'participants/participant_form.html', {'form': form})
+    return render(request, 'events/participant_form.html', {'form': form})
 
-@allowed_roles(['Admin'])
 def participant_delete(request, pk):
     user = get_object_or_404(User, pk=pk)
     if request.method == "POST":
         user.delete()
         return redirect('participant_list')
-    return render(request, 'participants/participant_confirm_delete.html', {'user': user})
+    return render(request, 'events/participant_confirm_delete.html', {'user': user})
 
 
 def search_events(request):

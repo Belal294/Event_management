@@ -1,14 +1,13 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.forms import UserCreationForm
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User,Group
 from django.contrib.auth import login, authenticate, logout
-from users.forms import CustomRegistrationForm, SignupForm
+from users.forms import CustomRegistrationForm, SignupForm, AssignRoleForm, CreateGroupForm
 from django.contrib.auth import login
-from django.contrib.auth.models import Group
 from django.contrib import messages
 from django.shortcuts import render
 from django.contrib.auth.decorators import user_passes_test
-
+from events.models import Event
 def sign_up(request):
     form = CustomRegistrationForm()
     if request.method == 'POST':
@@ -60,13 +59,54 @@ def signup_view(request):
 
 
 
-
-
-
 def is_admin(user):
     return user.is_superuser
 
 @user_passes_test(is_admin)
 def admin_dashboard(request):
-    return render(request, 'users/admin_dashboard.html')
+    users = User.objects.all()
+    events = Event.objects.all()
+    return render(request, 'admin/dashboard.html', {"users": users, "events": events})
+
+
+
+
+def assing_role(request, user_id):
+    user = get_object_or_404(User, id=user_id)
+    form = AssignRoleForm()
+
+    if request.method == 'POST':
+        form = AssignRoleForm(request.POST)  
+        if form.is_valid():
+            role = form.cleaned_data.get('role')  
+            
+            user.groups.clear()
+            user.groups.add(role)
+            
+            messages.success(request, f"User {user.username} has been assigned to the {role.name} role.")
+            
+            return redirect('admin-dashboard')  
+    
+    return render(request, 'admin/assign_role.html', {'form': form, 'user': user})
+
+
+@user_passes_test(is_admin, login_url='no-permission')
+def create_group(request):
+    form = CreateGroupForm()
+    if request.method == 'POST':
+        form = CreateGroupForm(request.POST)
+
+        if form.is_valid():
+            group = form.save()
+            messages.success(request, f"Group {group.name} has been created successfully")
+            return redirect('create-group')
+
+    return render(request, 'admin/create_group.html', {'form': form})
+
+
+@user_passes_test(is_admin, login_url='no-permission')
+def group_list(request):
+    groups = Group.objects.prefetch_related('permissions').all()
+    return render(request, 'admin/group_list.html', {'groups': groups})
+
 
