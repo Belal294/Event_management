@@ -25,4 +25,21 @@
     <a href="{% url 'event_delete' event.id %}" class="rounded-md bg-blue-900 px-3 py-2 text-sm font-medium text-white" aria-current="page">Delete Event</a>
 
 </div>
+
+
+{% if user.is_authenticated %}
+    {% if user in event.participants.all %}
+        <p><strong>You have already RSVP'd for this event.</strong></p>
+    {% else %}
+        <form action="{% url 'rsvp_event' event.id %}" method="post">
+            {% csrf_token %}
+            <button type="submit">RSVP Now</button>
+        </form>
+    {% endif %}
+{% else %}
+    <p><a href="{% url 'login' %}">Log in</a> to RSVP.</p>
+{% endif %}
+
+
+
 {% endblock %}

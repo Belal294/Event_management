@@ -1,6 +1,8 @@
 from django import forms 
 from .models import Event, Participant, Category
 from django.contrib.auth.models import User
+from .models import RSVP
+
 
 class StyledFormMixin:
     default_classes = "border-2 border-gray-300 p-3 rounded-lg shadow-sm focus:outline-none focus:border-rose-500 focus:ring-rose-500"
@@ -112,3 +114,10 @@ class UserParticipantForm(StyledFormMixin, forms.ModelForm):
 
 
         
+
+
+
+class RSVPForm(forms.ModelForm):
+    class Meta:
+        model = RSVP
+        fields = []

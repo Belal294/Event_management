@@ -10,6 +10,13 @@ from users.decorators import allowed_roles
 from django.contrib.auth.models import User, Group
 from django.contrib.auth.decorators import user_passes_test
 from django.db import connection
+from django.contrib import messages
+from django.core.mail import send_mail
+from django.conf import settings
+from .models import RSVP
+from users.views import is_admin
+
+
 
 # Event List View
 @login_required(login_url='login')
@@ -28,6 +35,7 @@ def event_list(request):
 
 # Event Create View
 @login_required(login_url='login')
+@user_passes_test(is_admin, login_url='no-permission')
 def event_create(request):
     form = EventForm(request.POST or None)
     if form.is_valid():
@@ -88,6 +96,7 @@ def event_statistics(request):
 
 # Category CRUD
 @login_required(login_url='login')
+@user_passes_test(is_admin, login_url='no-permission')
 def category_list(request):
     return render(request, 'events/category_list.html', {'categories': Category.objects.all()})
 
@@ -144,9 +153,15 @@ def filter_events(request, event_type):
 
 
 
+@login_required
 def participant_list(request):
-    participants = User.objects.filter(groups__name="Participant")
-    return render(request, 'events/participant_list.html', {'participants': participants})
+    rsvp_events = RSVP.objects.filter(user=request.user) 
+    participants = Event.objects.filter(participants=request.user)
+
+    return render(request, 'events/participant_list.html', {
+        'rsvp_events': rsvp_events,
+        'participants': participants,
+    })
 
 def participant_create(request):
     form = ParticipantForm(request.POST or None)
@@ -180,4 +195,57 @@ def is_admin(user):
 def manage_events(request):
     events = Event.objects.all()  
     return render(request, 'events/event_list.html', {'events': events})
+
+
+
+
+@login_required
+def rsvp_event(request, event_id):
+    event = get_object_or_404(Event, id=event_id)
+
+    # Check if the user has already RSVP'd
+    if RSVP.objects.filter(user=request.user, event=event).exists():
+        messages.warning(request, "You have already RSVP'd for this event.")
+        return redirect('event_detail', event_id=event.id)
+
+    # Save RSVP
+    RSVP.objects.create(user=request.user, event=event)
+    event.participants.add(request.user)
+    messages.success(request, f"You have successfully RSVP'd for {event.name}.")
+
+    # Send Confirmation Email
+    # send_mail(
+    #     subject="Event RSVP Confirmation",
+    #     message=f"Dear {request.user.username},\n\nYou have successfully RSVP'd for {event.name} on {event.date} at {event.time}.\n\nThank you!",
+    #     from_email="noreply@example.com",
+    #     recipient_list=[request.user.email],
+    #     fail_silently=True,
+    # )
+
+    return redirect('event_detail', event_id=event.id)
+
+
+
+
+@login_required
+def participant_dashboard(request):
+    rsvp_events = request.user.rsvps.all()
+    print(rsvp_event)
+    return render(request, 'events/participant_list.html', {'rsvp_events': rsvp_events})
+
+
+
+
+
+@login_required
+def cancel_rsvp(request, event_id):
+    event = get_object_or_404(Event, id=event_id)
+    rsvp = RSVP.objects.filter(user=request.user, event=event).first()
+
+    if rsvp:
+        rsvp.delete()
+        event.participants.remove(request.user)  
+        messages.success(request, "Your RSVP has been canceled.")
+
+    return redirect('participant_list')  
 

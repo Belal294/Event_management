@@ -115,7 +115,7 @@ WSGI_APPLICATION = 'event_management.wsgi.application'
 DATABASES = {
     'default': dj_database_url.config(
         # Replace this value with your local database's connection string.
-        default='postgresql://event_manager_db_dr7h_user:JLogeqVUgmTALAwrgtelnW2pbOLkcROB@dpg-cugu35rv2p9s73cnvo10-a.oregon-postgres.render.com/event_manager_db_dr7h',
+        default='postgresql://event_manager_db_r9li_user:GTEPIM8WbCfbm3rewWGbQgygMornUfUb@dpg-culiivl2ng1s73asm7fg-a.oregon-postgres.render.com/event_manager_db_r9li',
         conn_max_age=600
     )
 }
@@ -169,7 +169,7 @@ MEDIA_ROOT = BASE_DIR / 'media'
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
 
 # EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 # EMAIL_HOST = config('EMAIL_HOST')
@@ -190,8 +190,8 @@ INTERNAL_IPS = [
 
 
 AUTH_USER_MODEL = "auth.user"
+LOGIN_REDIRECT_URL = '/redirect-after-login/'  
 
-LOGIN_REDIRECT_URL = "home"
 LOGOUT_REDIRECT_URL = "login"
 
 
@@ -200,4 +200,17 @@ FRONTEND_URL = 'http://127.0.0.1:8000'
 LOGIN_URL = '/users/sign-in/'
 LOGIN_REDIRECT_URL = '/events/'
 LOGOUT_REDIRECT_URL = '/'
+
+
+
+
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_USE_TLS = True
+EMAIL_PORT = 587
+EMAIL_HOST_USER = "belalislam294@gmail.com"
+EMAIL_HOST_PASSWORD = "mgse pwsw apss tjzm"
+
 

@@ -5,9 +5,10 @@ from events.views import (
     filter_events, dashboard, event_statistics, event_stats, 
     category_list, category_create, category_update, category_delete, 
     participant_list, participant_create, participant_delete, 
-    search_events, manage_events
+    search_events, manage_events, rsvp_event,cancel_rsvp
 )
 from users.views import sign_up, sign_in, sign_out, signup_view, admin_dashboard
+
 
 urlpatterns = [
     # Authentication
@@ -52,4 +53,9 @@ urlpatterns = [
     # Django Auth Views (For built-in login/logout)
     path("auth-login/", auth_views.LoginView.as_view(template_name="registration/login.html"), name="auth-login"),
     path("auth-logout/", auth_views.LogoutView.as_view(), name="auth-logout"),
+
+    path('event/<int:event_id>/rsvp/', rsvp_event, name='rsvp_event'),
+    path('event/<int:event_id>/cancel_rsvp/', cancel_rsvp, name='cancel_rsvp'),
+
 ]
+

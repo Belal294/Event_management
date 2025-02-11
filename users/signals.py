@@ -8,10 +8,13 @@ from django.contrib.auth import get_user_model
 
 User = get_user_model()
 
-# 🎯 1️⃣ New User Registration হলে ইমেল পাঠানো হবে
+
 @receiver(post_save, sender=User)
 def send_activation_email(sender, instance, created, **kwargs):
     if created and instance.email:
+        instance.is_active = False
+        instance.save(update_fields=['is_active'])  
+
         token = default_token_generator.make_token(instance)
         activation_url = f"{settings.FRONTEND_URL}/users/activate/{instance.id}/{token}/"
 
@@ -27,22 +30,23 @@ def send_activation_email(sender, instance, created, **kwargs):
 
 
 @receiver(post_save, sender=User)
-def assign_default_role(sender, instance, created, **kwargs):
+def assign_default_group(sender, instance, created, **kwargs):
     if created:
-        default_group, _ = Group.objects.get_or_create(name='Participant')
-        instance.groups.add(default_group)
+        participant_group, _ = Group.objects.get_or_create(name='Participant')
+        instance.groups.add(participant_group)
+
+
+@receiver(post_save, sender=User)
+def assign_user_role(sender, instance, created, **kwargs):
+
+    if created:  
+        if instance.is_superuser:
+            group, _ = Group.objects.get_or_create(name='Admin')
+        elif hasattr(instance, 'is_organizer') and instance.is_organizer:
+            group, _ = Group.objects.get_or_create(name='Organizer')
+        else:
+            group, _ = Group.objects.get_or_create(name='Participant')
+
+        instance.groups.set([group])
         instance.save()
-        print(f"User {instance.username} added to 'Participant' group")
-
-
-def assign_user_role(instance):
-    if instance.is_superuser:
-        group, _ = Group.objects.get_or_create(name='Admin')
-    elif hasattr(instance, 'is_organizer') and instance.is_organizer:
-        group, _ = Group.objects.get_or_create(name='Organizer')
-    else:
-        group, _ = Group.objects.get_or_create(name='Participant')
-    
-    instance.groups.set([group])
-    instance.save()
-    print(f"User {instance.username} assigned to '{group.name}' group")
+        print(f" User {instance.username} assigned to '{group.name}' group")

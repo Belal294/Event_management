@@ -8,6 +8,13 @@ from django.contrib import messages
 from django.shortcuts import render
 from django.contrib.auth.decorators import user_passes_test
 from events.models import Event
+from django.contrib.auth.decorators import login_required
+from django.db.models import Prefetch
+from django.contrib.auth.tokens import default_token_generator
+from django.contrib.auth import get_user_model
+from django.shortcuts import get_object_or_404, redirect
+from django.contrib import messages
+
 def sign_up(request):
     form = CustomRegistrationForm()
     if request.method == 'POST':
@@ -20,6 +27,7 @@ def sign_up(request):
     return render(request, 'registration/register.html', {"form": form})
 
 
+
 def sign_in(request):
     if request.method == 'POST':
         username = request.POST.get('username')
@@ -29,12 +37,14 @@ def sign_in(request):
         
         if user is not None:
             login(request, user)
-            return redirect('home')
+            return redirect('dashboard_redirect')  # 🔥 রোল অনুযায়ী রিডাইরেক্ট
+            
         else:
             messages.error(request, "Your Username & Password is Invalid!")
-            print("Faild Login")  
+            print("Failed Login")  
             
     return render(request, 'registration/login.html')
+
 
 
 def sign_out(request):
@@ -60,15 +70,16 @@ def signup_view(request):
 
 
 def is_admin(user):
-    return user.is_superuser
+    return user.groups.filter(name='Admin').exists()
 
 @user_passes_test(is_admin)
 def admin_dashboard(request):
-    users = User.objects.all()
+    users = User.objects.prefetch_related(
+        Prefetch('groups', queryset=Group.objects.all(), to_attr='all_groups')
+    ).all()
+
     events = Event.objects.all()
     return render(request, 'admin/dashboard.html', {"users": users, "events": events})
-
-
 
 
 def assing_role(request, user_id):
@@ -110,3 +121,41 @@ def group_list(request):
     return render(request, 'admin/group_list.html', {'groups': groups})
 
 
+
+@login_required
+def dashboard_redirect(request):
+    user = request.user
+
+    if user.groups.filter(name='Admin').exists():
+        return redirect('/users/admin/dashboard/') 
+    elif user.groups.filter(name='Organizer').exists():
+        return redirect('/users/dashboard/organizer/')  
+    else:
+        return redirect('/users/dashboard/participant/')  
+
+
+@login_required
+def organizer_dashboard(request):
+    return render(request, 'admin/organizer_dashboard.html')
+
+@login_required
+def participant_dashboard(request):
+    return render(request, 'admin/participant_dashboard.html')
+
+
+
+
+
+User = get_user_model()
+
+def activate_user(request, user_id, token):
+    user = get_object_or_404(User, id=user_id)
+
+    if default_token_generator.check_token(user, token):
+        user.is_active = True
+        user.save(update_fields=['is_active'])
+        messages.success(request, "Your account has been activated successfully! You can now log in.")
+        return redirect("login")  
+    else:
+        messages.error(request, "Invalid activation link or token expired.")
+        return redirect("home") 

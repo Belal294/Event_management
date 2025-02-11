@@ -1,6 +1,6 @@
 from django.urls import path
 from django.contrib.auth import views as auth_views
-from users.views import sign_up, sign_in, sign_out, signup_view, admin_dashboard, assing_role, create_group, group_list
+from users.views import sign_up, sign_in, sign_out, signup_view, admin_dashboard, assing_role, create_group, group_list,dashboard_redirect, admin_dashboard, organizer_dashboard, participant_dashboard, activate_user
 
 urlpatterns = [
     path('sign-up/', sign_up, name='sign-up'), 
@@ -14,6 +14,9 @@ urlpatterns = [
     path('admin/<int:user_id>/assign-role/', assing_role, name='assign-role'),
     path('admin/create-group/', create_group, name='create-group'),
     path('admin/group_list/', group_list, name='group_list'),
-
+    path('dashboard/', dashboard_redirect, name='dashboard_redirect'),
+    path('dashboard/organizer/', organizer_dashboard, name='organizer_dashboard'),
+    path('dashboard/participant/', participant_dashboard, name='participant_dashboard'),
+     path("activate/<int:user_id>/<str:token>/", activate_user, name="activate_user"),
 
 ]
