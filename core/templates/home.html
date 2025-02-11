@@ -1,4 +1,5 @@
-{% extends "events/base.html" %}
+{% extends "base.html" %}
+
 {% block content %}
 <!-- Hero Section -->
 <section class="bg-blue-600 text-white py-32 md:py-40">
@@ -66,10 +67,17 @@
         <p class="text-xl mb-12">
             Join our platform and make event management seamless.
         </p>
-        <a href="{% url 'event_create' %}" 
-            class="bg-blue-500 text-white px-8 py-4 rounded-md font-semibold text-lg hover:bg-blue-600 transition duration-300">
-            Create an Event
-        </a>
+        {% if user.is_authenticated %}
+            <a href="{% url 'event_create' %}" 
+                class="bg-blue-500 text-white px-8 py-4 rounded-md font-semibold text-lg hover:bg-blue-600 transition duration-300">
+                Create an Event
+            </a>
+        {% else %}
+            <a href="{% url 'login' %}" 
+                class="bg-red-500 text-white px-8 py-4 rounded-md font-semibold text-lg hover:bg-red-600 transition duration-300">
+                Log in to Create Event
+            </a>
+        {% endif %}
     </div>
 </section>
 {% endblock %}

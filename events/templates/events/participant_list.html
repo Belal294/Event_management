@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h2>Your RSVP'd Events</h2>
+{% comment %} <ul>
+    {% for rsvp in rsvp_events %}
+        <li>{{ rsvp.event.name }} - {{ rsvp.event.date }} at {{ rsvp.event.time }}
+            <a href="{% url 'cancel_rsvp' rsvp.event.id %}">Cancel RSVP</a>
+        </li>
+    {% empty %}
+        <p>You have not RSVP'd for any events yet.</p>
+    {% endfor %}
+</ul> {% endcomment %}
+<div>
+    {{rsvp_events}}
+</div>
+<div class="max-w-4xl mx-auto mt-8 p-6 bg-white shadow-lg rounded-lg">
+    <h2 class="text-xl font-bold text-gray-700 mb-4">Participants List</h2>
+    <table class="w-full border-collapse border border-gray-300">
+        <thead>
+            <tr class="bg-gray-200 text-gray-700">
+                <th class="border border-gray-300 px-4 py-2">Username</th>
+                <th class="border border-gray-300 px-4 py-2">Email</th>
+                <th class="border border-gray-300 px-4 py-2">Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for user in participants %}
+            <tr class="text-center border border-gray-300">
+                <td class="border border-gray-300 px-4 py-2">{{ user.username }}</td>
+                <td class="border border-gray-300 px-4 py-2">{{ user.email }}</td>
+                <td class="border border-gray-300 px-4 py-2">
+                    <a href="{% url 'participant_delete' user.id %}" class="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600">Delete</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% endblock content %}

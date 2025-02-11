@@ -1,12 +1,9 @@
-{% extends "events/base.html" %}
 <header class="bg-white shadow-md">
     <nav class="container mx-auto px-6 py-3">
         <div class="flex justify-between items-center">
             <div class="text-xl font-bold text-gray-800">EventManager</div>
             <div class="hidden md:flex space-x-4">
                 <a href="{% url 'event_list' %}" class="text-gray-600 hover:text-gray-800">Events</a>
-                <a href="{% url 'about' %}" class="text-gray-600 hover:text-gray-800">About</a>
-                <a href="{% url 'contact' %}" class="text-gray-600 hover:text-gray-800">Contact</a>
             </div>
             <div class="md:hidden">
                 <button id="menu-toggle" class="text-gray-600 hover:text-gray-800 focus:outline-none">
@@ -17,15 +14,13 @@
             </div>
             <div class="flex gap-1">
                 <a href="{% url 'login' %}" class="hidden md:block bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition duration-300">Login</a>
-                <a href="{% url 'register' %}" class="hidden md:block bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition duration-300">Sign Up</a>
+                <a href="{% url 'signup' %}" class="hidden md:block bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition duration-300">Sign Up</a>
             </div>
         </div>
         <div id="mobile-menu" class="md:hidden hidden mt-4">
             <a href="{% url 'event_list' %}" class="block py-2 text-gray-600 hover:text-gray-800">Events</a>
-            <a href="{% url 'about' %}" class="block py-2 text-gray-600 hover:text-gray-800">About</a>
-            <a href="{% url 'contact' %}" class="block py-2 text-gray-600 hover:text-gray-800">Contact</a>
             <a href="{% url 'login' %}" class="block py-2 text-gray-600 hover:text-gray-800">Login</a>
-            <a href="{% url 'register' %}" class="block py-2 text-gray-600 hover:text-gray-800">Sign Up</a>
+            <a href="{% url 'signup' %}" class="block py-2 text-gray-600 hover:text-gray-800">Sign Up</a>
         </div>
     </nav>
 </header>

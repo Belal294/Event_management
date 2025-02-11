@@ -19,6 +19,7 @@
     </style>
   </head>
   <body class="font-sans bg-gray-100">
+
     {% if request.user.is_authenticated %}
         {% include "logged_nav.html" %}
     {% else %}
@@ -27,6 +28,7 @@
     
     <main class="container mx-auto p-8 max-w-7xl">
       {% block content %}
+      
       {% endblock content %}
     </main>
 
@@ -40,12 +42,37 @@
           <div class="w-full md:w-1/4 mb-8 md:mb-0">
             <h4 class="text-lg font-semibold mb-4">Quick Links</h4>
             <ul class="text-gray-400 space-y-2">
-              <li><a href="#" class="hover:text-white">Home</a></li>
-              <li><a href="#" class="hover:text-white">Events</a></li>
-              <li><a href="#" class="hover:text-white">Categories</a></li>
-              <li><a href="#" class="hover:text-white">Contact</a></li>
+              <li><a href="{% url 'home' %}" class="hover:text-white">Home</a></li>
+
+              <!-- Event dropdown with hover effect -->
+              <li class="relative group">
+                <a href="#" class="hover:text-white">Events</a>
+                <ul class="absolute left-0 hidden bg-gray-700 text-white group-hover:block">
+                  <li><a href="{% url 'event_list' %}" class="block px-4 py-2 hover:bg-gray-600">Event List</a></li>
+                  <li><a href="{% url 'event_create' %}" class="block px-4 py-2 hover:bg-gray-600">Create Event</a></li>
+                </ul>
+              </li>
+
+              <!-- Category dropdown with hover effect -->
+              <li class="relative group">
+                <a href="#" class="hover:text-white">Categories</a>
+                <ul class="absolute left-0 hidden bg-gray-700 text-white group-hover:block">
+                  <li><a href="{% url 'category_list' %}" class="block px-4 py-2 hover:bg-gray-600">Category List</a></li>
+                  <li><a href="{% url 'category_create' %}" class="block px-4 py-2 hover:bg-gray-600">Create Category</a></li>
+                </ul>
+              </li>
+
+              <!-- Participants dropdown with hover effect -->
+              <li class="relative group">
+                <a href="#" class="hover:text-white">Participants</a>
+                <ul class="absolute left-0 hidden bg-gray-700 text-white group-hover:block">
+                  <li><a href="{% url 'participant_list' %}" class="block px-4 py-2 hover:bg-gray-600">Participant List</a></li>
+                  <li><a href="{% url 'participant_create' %}" class="block px-4 py-2 hover:bg-gray-600">Add Participant</a></li>
+                </ul>
+              </li>
             </ul>
           </div>
+
           <div class="w-full md:w-1/4">
             <h4 class="text-lg font-semibold mb-4">Newsletter</h4>
             <form class="flex">

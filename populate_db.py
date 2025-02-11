@@ -2,23 +2,21 @@ import os
 import django
 import random
 from faker import Faker
+from django.contrib.auth.models import User
 from events.models import Event, Participant, Category
 
-# Set up Django environment
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'task_management.settings')
 django.setup()
 
 def populate_db():
     fake = Faker()
 
-    # Create Categories
     categories = [Category.objects.create(
         name=fake.word().capitalize(),
         description=fake.sentence()
     ) for _ in range(3)]
     print(f"Created {len(categories)} categories.")
 
-    # Create Events
     events = [Event.objects.create(
         name=fake.sentence(nb_words=4),
         description=fake.paragraph(),
@@ -29,20 +27,28 @@ def populate_db():
     ) for _ in range(5)]
     print(f"Created {len(events)} events.")
 
-    # Create Participants
-    participants = [Participant.objects.create(
-        name=fake.name(),
-        email=fake.email()
-    ) for _ in range(10)]
+    participants = []
+    for _ in range(10):
+        username = fake.user_name()
+        email = fake.email()
+        password = "password123"
+
+        user = User.objects.create_user(username=username, email=email, password=password)
+        participant = Participant.objects.create(user=user, name=fake.name(), email=email)
+        participants.append(user)
+
     print(f"Created {len(participants)} participants.")
 
-    # Assign Participants to Events
     for event in events:
-        selected_participants = random.sample(participants, random.randint(1, 5))
-        event.participants.set(selected_participants)
+        selected_users = random.sample(participants, random.randint(1, 5))
+        event.participants.set(selected_users)
 
     print("Database populated successfully!")
 
-# Run the function
 if __name__ == "__main__":
     populate_db()
+    
+    
+    
+    
+   

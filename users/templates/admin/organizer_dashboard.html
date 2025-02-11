@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-100 flex flex-col items-center justify-center">
+    <div class="bg-white shadow-lg rounded-lg p-6 w-full max-w-3xl">
+        <h2 class="text-2xl font-bold text-gray-800 text-center mb-4">Organizer Dashboard</h2>
+        <p class="text-gray-600 text-center">Welcome, {{ user.username }}! Manage your events and categories.</p>
+
+        <div class="mt-6 space-y-4">
+            <a href="{% url 'event_create' %}" class="block bg-blue-500 text-white text-center py-2 rounded-lg hover:bg-blue-600">Create New Event</a>
+            <a href="{% url 'event_list' %}" class="block bg-green-500 text-white text-center py-2 rounded-lg hover:bg-green-600">Manage Events</a>
+            <a href="{% url 'category_list' %}" class="block bg-purple-500 text-white text-center py-2 rounded-lg hover:bg-purple-600">Manage Categories</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
