@@ -27,14 +27,19 @@
         <tbody>
             {% for user in participants %}
             <tr class="text-center border border-gray-300">
-                <td class="border border-gray-300 px-4 py-2">{{ user.username }}</td>
+                <td class="border border-gray-300 px-4 py-2">{{ user.name }}</td>
                 <td class="border border-gray-300 px-4 py-2">{{ user.email }}</td>
                 <td class="border border-gray-300 px-4 py-2">
                     <a href="{% url 'participant_delete' user.id %}" class="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600">Delete</a>
                 </td>
             </tr>
+            {% empty %}
+            <tr>
+                <td colspan="3" class="text-center py-4 text-gray-500">No participants found</td>
+            </tr>
             {% endfor %}
         </tbody>
+        
     </table>
 </div>
 

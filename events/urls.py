@@ -41,7 +41,7 @@ urlpatterns = [
 
     # Participant Management (Admin Only)
     path('participants/', participant_list, name='participant_list'),
-    path('participants/create/', participant_create, name='participant_create'),
+    path("participants/create/", participant_create, name="participant_create"),
     path('participants/<int:pk>/delete/', participant_delete, name='participant_delete'),
 
     # Search Events

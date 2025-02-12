@@ -78,6 +78,8 @@ def admin_dashboard(request):
         Prefetch('groups', queryset=Group.objects.all(), to_attr='all_groups')
     ).all()
 
+
+
     events = Event.objects.all()
     return render(request, 'admin/dashboard.html', {"users": users, "events": events})
 

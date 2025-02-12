@@ -153,26 +153,39 @@ def filter_events(request, event_type):
 
 
 
+
 @login_required
 def participant_list(request):
-    rsvp_events = RSVP.objects.filter(user=request.user) 
-    participants = Event.objects.filter(participants=request.user)
+    rsvp_events = RSVP.objects.filter(user=request.user)
+    participants = Participant.objects.all()
+    return render(request, "events/participant_list.html", {"participants": participants})
+    # events = Event.objects.filter(participants=request.user)
+    # participants = User.objects.filter(events_participated__in=events).distinct()
+    # return render(request, 'events/participant_list.html', {
+    #     'rsvp_events': rsvp_events,
+    #     'participants': participants,
 
-    return render(request, 'events/participant_list.html', {
-        'rsvp_events': rsvp_events,
-        'participants': participants,
-    })
+    # })
+
+
+
 
 def participant_create(request):
-    form = ParticipantForm(request.POST or None)
-    if form.is_valid():
-        user = form.save(commit=False)
-        user.set_password(form.cleaned_data["password"])
-        user.save()
-        participant_group = Group.objects.get(name="Participant")
-        user.groups.add(participant_group)
-        return redirect('participant_list')
-    return render(request, 'events/participant_form.html', {'form': form})
+    if request.method == "POST":
+        name = request.POST.get("name", "").strip()  
+        email = request.POST.get("email", "").strip()
+
+        if not name or not email:
+            messages.error(request, "Name and Email are required!")
+        elif Participant.objects.filter(email=email).exists():
+            messages.error(request, "A participant with this email already exists!")
+        else:
+            Participant.objects.create(name=name, email=email)
+            messages.success(request, "Participant successfully created!")
+            return redirect("participants_list")
+
+    return render(request, "events/participant_form.html")
+
 
 def participant_delete(request, pk):
     user = get_object_or_404(User, pk=pk)

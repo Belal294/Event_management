@@ -4,7 +4,7 @@
             
             {% if request.user.groups.first.name == "Admin" %}
                 <!-- Full Navbar for Admin -->
-                <a href="{% url 'admin:index' %}" class="text-gray-600 hover:text-gray-800 font-semibold">
+                <a href="{% url 'admin-dashboard' %}" class="text-gray-600 hover:text-gray-800 font-semibold">
                     Admin Dashboard
                 </a>
 
