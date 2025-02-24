@@ -14,6 +14,10 @@ from django.contrib.auth.tokens import default_token_generator
 from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404, redirect
 from django.contrib import messages
+from django.contrib.auth.mixins import UserPassesTestMixin, LoginRequiredMixin
+from django.views.generic import CreateView
+from django.urls import reverse_lazy
+
 
 def sign_up(request):
     form = CustomRegistrationForm()
@@ -37,7 +41,7 @@ def sign_in(request):
         
         if user is not None:
             login(request, user)
-            return redirect('dashboard_redirect')  # 🔥 রোল অনুযায়ী রিডাইরেক্ট
+            return redirect('dashboard_redirect')  
             
         else:
             messages.error(request, "Your Username & Password is Invalid!")
@@ -103,19 +107,32 @@ def assing_role(request, user_id):
     return render(request, 'admin/assign_role.html', {'form': form, 'user': user})
 
 
-@user_passes_test(is_admin, login_url='no-permission')
-def create_group(request):
-    form = CreateGroupForm()
-    if request.method == 'POST':
-        form = CreateGroupForm(request.POST)
+# @user_passes_test(is_admin, login_url='no-permission')
+# def create_group(request):
+#     form = CreateGroupForm()
+#     if request.method == 'POST':
+#         form = CreateGroupForm(request.POST)
 
-        if form.is_valid():
-            group = form.save()
-            messages.success(request, f"Group {group.name} has been created successfully")
-            return redirect('create-group')
+#         if form.is_valid():
+#             group = form.save()
+#             messages.success(request, f"Group {group.name} has been created successfully")
+#             return redirect('create-group')
 
-    return render(request, 'admin/create_group.html', {'form': form})
+#     return render(request, 'admin/create_group.html', {'form': form})
 
+class CreateGroupView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
+    model = Group
+    form_class = CreateGroupForm
+    template_name = "admin/create_group.html"
+    success_url = reverse_lazy("create-group")
+
+    def test_func(self):
+        return self.request.user.groups.filter(name="Admin").exists()
+
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        messages.success(self.request, f"Group {self.object.name} has been created successfully")
+        return response
 
 @user_passes_test(is_admin, login_url='no-permission')
 def group_list(request):

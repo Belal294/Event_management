@@ -1,11 +1,8 @@
 from django.urls import path
 from django.contrib.auth import views as auth_views
 from events.views import (
-    event_list, event_create, event_update, event_delete, event_detail, 
-    filter_events, dashboard, event_statistics, event_stats, 
-    category_list, category_create, category_update, category_delete, 
-    participant_list, participant_create, participant_delete, 
-    search_events, manage_events, rsvp_event,cancel_rsvp
+    filter_events, dashboard, event_statistics, event_stats,
+    search_events, manage_events, rsvp_event,cancel_rsvp, EventListView, CreateEvent, EventUpdateView, EventDeleteView, EventDetailView, CategoryListView, CategoryCreateView, CategoryUpdateView, CategoryDeleteView, ParticipantListView, ParticipantCreateView, ParticipantDeleteView
 )
 from users.views import sign_up, sign_in, sign_out, signup_view, admin_dashboard
 
@@ -22,11 +19,21 @@ urlpatterns = [
     path('dashboard/', dashboard, name='dashboard'),
 
     # Event URLs
-    path('events/', event_list, name='event_list'),
-    path('events/create/', event_create, name='event_create'),
-    path('events/<int:pk>/update/', event_update, name='event_update'),
-    path('events/<int:pk>/delete/', event_delete, name='event_delete'),
-    path('events/<int:pk>/', event_detail, name='event_detail'),
+    # path('events/', event_list, name='event_list'),
+    # path('events/create/', event_create, name='event_create'),
+    path('events/create/', CreateEvent.as_view(), name='event_create'),
+    path('events/', EventListView.as_view(), name='event_list'),
+    # path('events/create/', EventCreateView.as_view(), name='event_create'),
+    path('event/update/<int:pk>/', EventUpdateView.as_view(), name='event_update'),
+
+
+    # path('events/<int:pk>/update/', event_update, name='event_update'),
+
+    # path('events/<int:pk>/delete/', event_delete, name='event_delete'),
+    path('event/delete/<int:pk>/', EventDeleteView.as_view(), name='event_delete'),
+    # path('events/<int:pk>/', event_detail, name='event_detail'),
+    path('event/<int:pk>/', EventDetailView.as_view(), name='event_detail'),
+
     path('events/filter/<str:event_type>/', filter_events, name='filter_events'),
 
     # Event Statistics
@@ -34,15 +41,25 @@ urlpatterns = [
     path('events/stats/', event_stats, name='event_stats'),
 
     # Category URLs
-    path('categories/', category_list, name='category_list'),
-    path('categories/create/', category_create, name='category_create'),
-    path('categories/<int:pk>/update/', category_update, name='category_update'),
-    path('categories/<int:pk>/delete/', category_delete, name='category_delete'),
+    # path('categories/', category_list, name='category_list'),
+    # path('categories/create/', category_create, name='category_create'),
+    # path('categories/<int:pk>/update/', category_update, name='category_update'),
+    # path('categories/<int:pk>/delete/', category_delete, name='category_delete'),
+    path('categories/', CategoryListView.as_view(), name='category_list'),
+    path('categories/create/', CategoryCreateView.as_view(), name='category_create'),
+    path('categories/update/<int:pk>/', CategoryUpdateView.as_view(), name='category_update'),
+    path('categories/delete/<int:pk>/', CategoryDeleteView.as_view(), name='category_delete'),
+
 
     # Participant Management (Admin Only)
-    path('participants/', participant_list, name='participant_list'),
-    path("participants/create/", participant_create, name="participant_create"),
-    path('participants/<int:pk>/delete/', participant_delete, name='participant_delete'),
+    # path('participants/', participant_list, name='participant_list'),
+    # path("participants/create/", participant_create, name="participant_create"),
+    # path('participants/<int:pk>/delete/', participant_delete, name='participant_delete'),
+    path("participants/", ParticipantListView.as_view(), name="participant_list"),
+    path("participants/create/", ParticipantCreateView.as_view(), name="participant_create"),
+    path("participants/delete/<int:pk>/", ParticipantDeleteView.as_view(), name="participant_delete"),
+
+
 
     # Search Events
     path('search/', search_events, name='search_events'),
