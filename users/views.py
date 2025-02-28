@@ -18,20 +18,21 @@ from django.contrib.auth.mixins import UserPassesTestMixin, LoginRequiredMixin
 from django.views.generic import CreateView
 from django.urls import reverse_lazy
 from django.contrib.auth.views import LoginView, PasswordChangeView, PasswordResetView, PasswordResetConfirmView
-from users.forms import CustomRegistrationForm, AssignRoleForm, CreateGroupForm, CustomPasswordChangeForm, CustomPasswordResetForm, CustomPasswordResetConfirmForm, EditProfileForm
+from users.forms import CustomUserCreationForm, CustomRegistrationForm, AssignRoleForm, CreateGroupForm, CustomPasswordChangeForm, CustomPasswordResetForm, CustomPasswordResetConfirmForm, EditProfileForm
 from django.views.generic import TemplateView, UpdateView
 
 
 def sign_up(request):
-    form = CustomRegistrationForm()
-    if request.method == 'POST':
-        form = CustomRegistrationForm(request.POST)
+    if request.method == "POST":
+        form = CustomUserCreationForm(request.POST, request.FILES)
         if form.is_valid():
             user = form.save()
-            participant_group = Group.objects.get(name='Participant')
-            user.groups.add(participant_group)  
-            return redirect('sign-in')  
-    return render(request, 'registration/register.html', {"form": form})
+            login(request, user)
+            return redirect('dashboard')  
+    else:
+        form = CustomUserCreationForm()
+    
+    return render(request, "regisration/register.html", {"form": form})
 
 
 
@@ -79,13 +80,6 @@ def signup_view(request):
 def is_admin(user):
     return user.groups.filter(name='Admin').exists()
 
-# @user_passes_test(is_admin)
-# def admin_dashboard(request):
-#     users = User.objects.prefetch_related(
-#         Prefetch('groups', queryset=Group.objects.all(), to_attr='all_groups')
-#     ).all()
-#     events = Event.objects.all()
-#     return render(request, 'admin/dashboard.html', {"users": users, "events": events})
 
 @user_passes_test(is_admin)
 def admin_dashboard(request):
@@ -94,14 +88,14 @@ def admin_dashboard(request):
     ).all()
     events = Event.objects.all()
     
-    profile_image = None
+    profile_picture = None
     if request.user.is_authenticated:
-        profile_image = request.user.profile_image if hasattr(request.user, 'profile_image') else None
+        profile_picture = request.user.profile_picture if hasattr(request.user, 'profile_picture') else None
 
     return render(request, 'admin/dashboard.html', {
         "users": users,
         "events": events,
-        "profile_image": profile_image
+        "profile_picture": profile_picture
     })
 
 
@@ -122,20 +116,6 @@ def assing_role(request, user_id):
             return redirect('admin-dashboard')  
     
     return render(request, 'admin/assign_role.html', {'form': form, 'user': user})
-
-
-# @user_passes_test(is_admin, login_url='no-permission')
-# def create_group(request):
-#     form = CreateGroupForm()
-#     if request.method == 'POST':
-#         form = CreateGroupForm(request.POST)
-
-#         if form.is_valid():
-#             group = form.save()
-#             messages.success(request, f"Group {group.name} has been created successfully")
-#             return redirect('create-group')
-
-#     return render(request, 'admin/create_group.html', {'form': form})
 
 
 
@@ -219,7 +199,7 @@ class ChangePassword(PasswordChangeView):
 
 
 
-class ProfileView(TemplateView):
+class ProfileView(LoginRequiredMixin, TemplateView):
     template_name = 'accounts/profile.html'
 
     def get_context_data(self, **kwargs):
@@ -229,11 +209,12 @@ class ProfileView(TemplateView):
         context['username'] = user.username
         context['email'] = user.email
         context['name'] = user.get_full_name()
-        context['bio'] = user.bio
-        context['profile_image'] = user.profile_image
+
+        context['profile_picture'] = user.profile_picture.url if user.profile_picture else None
 
         context['member_since'] = user.date_joined
         context['last_login'] = user.last_login
+
         return context
 
 

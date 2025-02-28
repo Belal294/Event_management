@@ -1,14 +1,18 @@
 from django.contrib import admin
-from django.contrib.auth import get_user_model
+from django.contrib.auth.admin import UserAdmin
+from .models import CustomUser
+from .forms import CustomUserCreationForm, CustomUserChangeForm
 
-User = get_user_model()
+class CustomUserAdmin(UserAdmin):
+    add_form = CustomUserCreationForm
+    form = CustomUserChangeForm
+    model = CustomUser
+    list_display = ['username', 'email', 'phone_number', 'profile_picture', 'is_staff']
+    fieldsets = UserAdmin.fieldsets + (
+        (None, {'fields': ('phone_number', 'profile_picture')}),
+    )
+    add_fieldsets = UserAdmin.add_fieldsets + (
+        (None, {'fields': ('phone_number', 'profile_picture')}),
+    )
 
-try:
-    admin.site.unregister(User)
-except admin.sites.NotRegistered:
-    pass  
-
-if User not in admin.site._registry:
-    @admin.register(User)
-    class CustomUserAdmin(admin.ModelAdmin):
-        list_display = ("username", "email", "is_staff", "is_active")
+admin.site.register(CustomUser, CustomUserAdmin)
