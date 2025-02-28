@@ -26,15 +26,11 @@
 
                 <!-- ✅ User Dropdown -->
                 <div class="relative">
-                    {% comment %} <button id="user-menu-button" class="flex items-center focus:outline-none">
-                        <img class="h-8 w-8 rounded-full object-cover"
-                             src="{{ profile_image.url }}"
-                             alt="User avatar" />
-                    </button>  {% endcomment %}
+                    
                     <button id="user-menu-button" class="flex items-center focus:outline-none">
                         <img class="h-8 w-8 rounded-full object-cover"
-                             src="{% if profile_image %}{{ profile_image }}{% else %}/static/default-avatar.png{% endif %}"
-                             alt="User avatar" />
+                            src="{% if user.profile_picture %}{{ user.profile_picture.url }}{% else %}/static/default-avatar.png{% endif %}"
+                            alt="User avatar" />
                     </button> 
 
                     <div id="user-menu" class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 hidden">
