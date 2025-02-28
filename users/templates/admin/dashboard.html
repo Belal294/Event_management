@@ -33,7 +33,7 @@
                     </button>  {% endcomment %}
                     <button id="user-menu-button" class="flex items-center focus:outline-none">
                         <img class="h-8 w-8 rounded-full object-cover"
-                             src="{% if profile_image %}{{ profile_image.url }}{% else %}/static/default-avatar.png{% endif %}"
+                             src="{% if profile_image %}{{ profile_image }}{% else %}/static/default-avatar.png{% endif %}"
                              alt="User avatar" />
                     </button> 
 
