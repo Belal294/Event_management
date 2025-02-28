@@ -113,9 +113,6 @@ class UserParticipantForm(StyledFormMixin, forms.ModelForm):
         fields = ['username', 'email', 'password']
 
 
-        
-
-
 
 class RSVPForm(forms.ModelForm):
     class Meta:

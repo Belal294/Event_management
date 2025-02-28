@@ -1,111 +1,113 @@
-
 {% extends "base.html" %}
-{% block title %}Dashboard{% endblock %}
-
+{% block title %}Events{% endblock %}
 
 {% block content %}
+<div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
+    <!-- Total Events -->
+    <div class="p-4 bg-slate-600 shadow-md rounded-lg cursor-pointer transition transform hover:scale-105" id="total-events">
+        <h2 class="text-xl font-bold text-white">Total Events</h2>
+        <p class="text-2xl text-white">{{ counts.total_events }}</p>
+    </div>
+
+    <!-- Total Participants -->
+    <div class="p-4 bg-slate-600 shadow-md rounded-lg cursor-pointer transition transform hover:scale-105" id="total-participants">
+        <h2 class="text-xl font-bold text-white">Total Participants</h2>
+        <p class="text-2xl text-white">{{ counts.total_participant }}</p>
+    </div>
+
+    <!-- Upcoming Events -->
+    <div class="p-4 bg-slate-600 shadow-md rounded-lg cursor-pointer transition transform hover:scale-105" id="upcoming-events">
+        <h2 class="text-xl font-bold text-white">Upcoming Events</h2>
+        <p class="text-2xl text-white">{{ counts.upcoming_events }}</p>
+    </div>
+
+    <!-- Past Events -->
+    <div class="p-4 bg-slate-600 shadow-md rounded-lg cursor-pointer transition transform hover:scale-105" id="past-events">
+        <h2 class="text-xl font-bold text-white">Past Events</h2>
+        <p class="text-2xl text-white">{{ counts.past_events }}</p>
+    </div>
+</div>
+
+<!-- Display Updated Info -->
+<div class="mt-6" id="updated-info" style="display: none;">
+    <h2 class="text-2xl font-bold">Updated Information</h2>
+    <ul class="mt-2 space-y-2" id="updated-list">
+        <!-- Updated info will be appended here -->
+    </ul>
+</div>
+
 <script>
-    document.addEventListener("DOMContentLoaded", function () {
-        fetchEventStatistics();
-    });
-    
-    function fetchEventStatistics() {
-        fetch("/events/stats/")
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error("Network response was not ok");
-                }
-                return response.json();
-            })
-            .then(data => {
-                document.getElementById("total-events").innerText = data.total_events || 0;
-                document.getElementById("total-participants").innerText = data.total_participants || 0;
-                document.getElementById("upcoming-events").innerText = data.upcoming_events || 0;
-                document.getElementById("past-events").innerText = data.past_events || 0;
-            })
-            .catch(error => console.error("Error fetching statistics:", error));
-    }
-    
-    function showEvents(type) {
-        fetch(`/events/filter/${type}/`)
+    // Function to make AJAX request and update content
+    function fetchData(url, elementId) {
+        fetch(url)
             .then(response => response.json())
             .then(data => {
-                let eventList = document.getElementById("event-list");
-                eventList.innerHTML = ""; 
-    
-                if (!data.events || data.events.length === 0) {
-                    eventList.innerHTML = "<li class='text-gray-500'>No events found.</li>";
-                } else {
-                    data.events.forEach(event => {
-                        let li = document.createElement("li");
-                        li.className = "p-3 bg-gray-700 rounded-lg shadow-md text-white";
-                        li.innerText = `${event.name} (${event.date})`;
-                        eventList.appendChild(li);
+                const updatedInfo = document.getElementById('updated-info');
+                const updatedList = document.getElementById('updated-list');
+                updatedList.innerHTML = '';  // Clear the list before adding new data
+
+                // Check if the element is total events
+                if (elementId === 'total_events') {
+                    data.total_events.forEach(event => {
+                        const listItem = document.createElement('li');
+                        listItem.classList.add('bg-gray-100', 'p-4', 'rounded-lg', 'shadow');
+                        listItem.innerHTML = `Event Name: ${event.name}`;
+                        updatedList.appendChild(listItem);
                     });
                 }
+
+                // Check if the element is total participants
+                if (elementId === 'total_participant') {
+                    data.total_participant.forEach(participant => {
+                        const listItem = document.createElement('li');
+                        listItem.classList.add('bg-gray-100', 'p-4', 'rounded-lg', 'shadow');
+                        listItem.innerHTML = `Name: ${participant.name}, Email: ${participant.email}`;
+                        updatedList.appendChild(listItem);
+                    });
+                }
+
+                // Check if the element is upcoming events
+                if (elementId === 'upcoming_events') {
+                    data.upcoming_events.forEach(event => {
+                        const listItem = document.createElement('li');
+                        listItem.classList.add('bg-gray-100', 'p-4', 'rounded-lg', 'shadow');
+                        listItem.innerHTML = `Upcoming Event: ${event.name} - Date: ${event.date}`;
+                        updatedList.appendChild(listItem);
+                    });
+                }
+
+                // Check if the element is past events
+                if (elementId === 'past_events') {
+                    data.past_events.forEach(event => {
+                        const listItem = document.createElement('li');
+                        listItem.classList.add('bg-gray-100', 'p-4', 'rounded-lg', 'shadow');
+                        listItem.innerHTML = `Past Event: ${event.name} - Date: ${event.date}`;
+                        updatedList.appendChild(listItem);
+                    });
+                }
+
+                // Show the updated info
+                updatedInfo.style.display = 'block';
             })
-            .catch(error => console.error("Error fetching events:", error));
+            .catch(error => console.log(error));
     }
-    
-    function showStatistics() {
-        fetch("/events/stats/")
-            .then(response => response.json())
-            .then(data => {
-                document.getElementById("total-participants").innerText = data.total_participants || 0;
-            })
-            .catch(error => console.error("Error fetching statistics:", error));
-    }
-    
-    
+
+    // Event listeners for each section
+    document.getElementById('total-events').addEventListener('click', function() {
+        fetchData("{% url 'total_events' %}", 'total_events');
+    });
+
+    document.getElementById('total-participants').addEventListener('click', function() {
+        fetchData("{% url 'total_participants' %}", 'total_participant');
+    });
+
+    document.getElementById('upcoming-events').addEventListener('click', function() {
+        fetchData("{% url 'upcoming_events' %}", 'upcoming_events');
+    });
+
+    document.getElementById('past-events').addEventListener('click', function() {
+        fetchData("{% url 'past_events' %}", 'past_events');
+    });
 </script>
-
-<h2 class="text-2xl font-bold mb-4">Your RSVP'd Events</h2>
-<ul class="space-y-2">
-    {% for event in user.events_participated.all %}
-        <li class="bg-gray-100 p-4 rounded-lg shadow">
-            <a href="{% url 'event_detail' event.id %}" class="text-blue-500 font-semibold hover:underline">
-                {{ event.name }}
-            </a> - <span class="text-gray-700">{{ event.date }}</span>
-        </li>
-    {% empty %}
-        <p class="text-gray-600">You have not RSVP'd to any events yet.</p>
-    {% endfor %}
-</ul>
-
-
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
-        
-            <div class="p-4 bg-slate-500 shadow-md rounded-lg cursor-pointer transition transform hover:scale-105"
-                onclick="showStatistics()">
-                <h2 class="text-xl font-bold text-white">Total Participants</h2>
-                <p id="total-participants" class="text-2xl text-white">0</p>
-            </div>
-
-            <div class="p-4 bg-slate-500 shadow-md rounded-lg cursor-pointer transition transform hover:scale-105"
-                onclick="showEvents('all')">
-                <h2 class="text-xl font-bold text-white">Total Events</h2>
-                <p id="total-events" class="text-2xl text-white">0</p>
-            </div>
-
-            <div class="p-4 bg-slate-500 shadow-md rounded-lg cursor-pointer transition transform hover:scale-105"
-                onclick="showEvents('upcoming')">
-                <h2 class="text-xl font-bold text-white">Upcoming Events</h2>
-                <p id="upcoming-events" class="text-2xl text-white">0</p>
-            </div>
-
-            <div class="p-4 bg-slate-500 shadow-md rounded-lg cursor-pointer transition transform hover:scale-105"
-                onclick="showEvents('past')">
-                <h2 class="text-xl font-bold text-white">Past Events</h2>
-                <p id="past-events" class="text-2xl text-white">0</p>
-            </div>
-        </div>
-
-        <div class="mt-6">
-            <h2 class="text-2xl font-bold">Event List</h2>
-            <ul id="event-list" class="mt-2 space-y-2">
-                <li class="text-gray-500">Click on a category to see events</li>
-            </ul>
-        </div>
-
 
 {% endblock %}

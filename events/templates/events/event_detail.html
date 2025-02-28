@@ -27,7 +27,7 @@
 </div>
 
 
-{% if user.is_authenticated %}
+{% comment %} {% if user.is_authenticated %}
     {% if user in event.participants.all %}
         <p><strong>You have already RSVP'd for this event.</strong></p>
     {% else %}
@@ -38,7 +38,7 @@
     {% endif %}
 {% else %}
     <p><a href="{% url 'login' %}">Log in</a> to RSVP.</p>
-{% endif %}
+{% endif %} {% endcomment %}
 
 
 

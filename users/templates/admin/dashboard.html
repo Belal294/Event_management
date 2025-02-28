@@ -26,13 +26,23 @@
 
                 <!-- ✅ User Dropdown -->
                 <div class="relative">
+                    {% comment %} <button id="user-menu-button" class="flex items-center focus:outline-none">
+                        <img class="h-8 w-8 rounded-full object-cover"
+                             src="{{ profile_image.url }}"
+                             alt="User avatar" />
+                    </button>  {% endcomment %}
                     <button id="user-menu-button" class="flex items-center focus:outline-none">
                         <img class="h-8 w-8 rounded-full object-cover"
-                             src="{% static 'images/user-avatar.png' %}"
+                             src="{% if profile_image %}{{ profile_image.url }}{% else %}/static/default-avatar.png{% endif %}"
                              alt="User avatar" />
-                    </button>
+                    </button> 
 
                     <div id="user-menu" class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 hidden">
+                        <a
+                            href="{% url 'profile' %}"
+                            class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                            >Profile</a
+                        >
                         <form method="post" action="{% url 'logout' %}">
                             {% csrf_token %}
                             <button class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Logout</button>

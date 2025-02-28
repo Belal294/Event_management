@@ -1,10 +1,14 @@
 from django.contrib import admin
-from django.contrib.auth.admin import UserAdmin
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 
-class CustomUserAdmin(UserAdmin):
-    list_display = ('username', 'email', 'first_name', 'last_name', 'is_staff', 'is_superuser')
-    search_fields = ('username', 'email')
+User = get_user_model()
 
-admin.site.unregister(User)  
-admin.site.register(User, CustomUserAdmin)  
+try:
+    admin.site.unregister(User)
+except admin.sites.NotRegistered:
+    pass  
+
+if User not in admin.site._registry:
+    @admin.register(User)
+    class CustomUserAdmin(admin.ModelAdmin):
+        list_display = ("username", "email", "is_staff", "is_active")

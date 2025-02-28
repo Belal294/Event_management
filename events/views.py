@@ -1,48 +1,29 @@
 from django.shortcuts import render, get_object_or_404, redirect
-from django.http import JsonResponse, HttpResponse
+from django.http import JsonResponse
 from django.utils.timezone import now
 from django.db.models import Count
 from datetime import date
-from .models import Event, Category, Participant
-from .forms import EventForm, CategoryForm, ParticipantForm
+from .models import Event, Category, RSVP, Participant
+from .forms import EventForm, CategoryForm
 from django.contrib.auth.decorators import login_required
-from users.decorators import allowed_roles
-from django.contrib.auth.models import User, Group
-from django.contrib.auth.decorators import user_passes_test
-from django.db import connection
-from django.contrib import messages
-from django.core.mail import send_mail
-from django.conf import settings
-from .models import RSVP, Category
-from users.views import is_admin
-from django.views import View
-from django.utils.decorators import method_decorator
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.views.generic import ListView, UpdateView, DeleteView, DetailView, CreateView
 from django.urls import reverse_lazy
-from django.contrib.auth.decorators import login_required, user_passes_test
+from django.contrib import messages
+from django.db import connection
+from django.contrib.auth import get_user_model
+from users.decorators import allowed_roles
+from django.utils import timezone
+
+User = get_user_model()
 
 
+# Utility Functions
+def is_admin_or_organizer(user):
+    return user.groups.filter(name__in=['Admin', 'Organizer']).exists()
 
 
-
-# Event List View
-# @login_required(login_url='login')
-# def event_list(request):
-#     category_id = request.GET.get('category')
-#     start_date = request.GET.get('start_date')
-#     end_date = request.GET.get('end_date')
-#     events = Event.objects.select_related('category').prefetch_related('participants')
-
-#     if category_id:
-#         events = events.filter(category_id=category_id)
-#     if start_date and end_date:
-#         events = events.filter(date__range=[start_date, end_date])
-
-#     return render(request, 'events/event_list.html', {'events': events})
-
-
-
+# Event Views
 class EventListView(LoginRequiredMixin, ListView):
     model = Event
     template_name = 'events/event_list.html'
@@ -50,293 +31,108 @@ class EventListView(LoginRequiredMixin, ListView):
     login_url = 'login'
 
     def get_queryset(self):
+        queryset = Event.objects.select_related('category').prefetch_related('participants')
         category_id = self.request.GET.get('category')
         start_date = self.request.GET.get('start_date')
         end_date = self.request.GET.get('end_date')
-        
-        queryset = Event.objects.select_related('category').prefetch_related('participants')
-        
+
         if category_id:
             queryset = queryset.filter(category_id=category_id)
         if start_date and end_date:
             queryset = queryset.filter(date__range=[start_date, end_date])
-        
+
         return queryset
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['category_id'] = self.request.GET.get('category', '')
-        context['start_date'] = self.request.GET.get('start_date', '')
-        context['end_date'] = self.request.GET.get('end_date', '')
+        context.update({
+            'category_id': self.request.GET.get('category', ''),
+            'start_date': self.request.GET.get('start_date', ''),
+            'end_date': self.request.GET.get('end_date', '')
+        })
         return context
 
 
-
-
-
-# Event Create View
-# @login_required(login_url='login')
-# @user_passes_test(is_admin, login_url='no-permission')
-# def event_create(request):
-#     form = EventForm(request.POST or None)
-#     if form.is_valid():
-#         form.save()
-#         connection.close()
-        
-#         return redirect('event_list')
-    
-#     return render(request, 'events/event_form.html', {'form': form})
-
-# def is_admin(user):
-#     return user.is_authenticated and user.is_staff
-
-# class EventCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
-#     model = Event
-#     form_class = EventForm
-#     template_name = 'events/event_form.html'
-#     success_url = reverse_lazy('event_list')
-#     login_url = 'login'
-
-#     def test_func(self):
-#         return is_admin(self.request.user)
-
-#     def form_valid(self, form):
-#         response = super().form_valid(form)
-#         connection.close()
-#         return response
-
-
-
-
-
-
-    
-@method_decorator(login_required(login_url='login'), name='dispatch')
-@method_decorator(user_passes_test(is_admin, login_url='no-permission'), name='dispatch')
-class CreateEvent(View):
-    def get(self, request, *args, **kwargs):
-        form = EventForm()
-        return render(request, 'events/event_form.html', {'form': form})
-        
-        
-    def post(self, request, *args, **kwargs):
-        form = EventForm(request.POST or None)
-        if form.is_valid():
-            form.save()
-            connection.close()
-            return redirect('event_list')
-        return render(request, 'events/event_form.html', {'form': form})
-
-
-class EventUpdateView(UpdateView):
+class CreateEvent(LoginRequiredMixin, UserPassesTestMixin, CreateView):
     model = Event
     form_class = EventForm
     template_name = 'events/event_form.html'
     success_url = reverse_lazy('event_list')
 
-# Event Update View
-# def event_update(request, pk):
-#     event = get_object_or_404(Event, pk=pk)
-#     form = EventForm(request.POST or None, instance=event)
-#     if form.is_valid():
-#         form.save()
-#         return redirect('event_list')
-#     return render(request, 'events/event_form.html', {'form': form})
+    def test_func(self):
+        return is_admin_or_organizer(self.request.user)
 
-# Event Delete View
-# def event_delete(request, pk):
-#     event = get_object_or_404(Event, pk=pk)
-#     if request.method == "POST":
-#         event.delete()
-#         return redirect('event_list')
-#     return render(request, 'events/event_confirm_delete.html', {'event': event})
 
-class EventDeleteView(DeleteView):
+class EventUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
+    model = Event
+    form_class = EventForm
+    template_name = 'events/event_form.html'
+    success_url = reverse_lazy('event_list')
+
+    def test_func(self):
+        return is_admin_or_organizer(self.request.user)
+
+
+class EventDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
     model = Event
     template_name = 'events/event_confirm_delete.html'
     success_url = reverse_lazy('event_list')
 
-
-# # Event Detail View
-# def event_detail(request, pk):
-#     event = get_object_or_404(Event, pk=pk)
-#     return render(request, 'events/event_detail.html', {'event': event})
+    def test_func(self):
+        return is_admin_or_organizer(self.request.user)
 
 
-class EventDetailView(DetailView):
+class EventDetailView(LoginRequiredMixin, DetailView):
     model = Event
     template_name = 'events/event_detail.html'
     context_object_name = 'event'
 
 
-def filter_events(request, event_type):
-    filters = {
-        "upcoming": Event.objects.filter(date__gte=date.today()),
-        "past": Event.objects.filter(date__lt=date.today())
-    }
-    events = filters.get(event_type, Event.objects.all())
-    event_list = [{"name": event.name, "date": event.date.strftime("%Y-%m-%d")} for event in events]
-    return JsonResponse({"events": event_list})
-
-# Dashboard View
-def dashboard(request):
-    return render(request, 'events/dashboard.html', {
-        'total_events': Event.objects.count(),
-        'upcoming_events': Event.objects.filter(date__gte=now().date()).count(),
-        'past_events': Event.objects.filter(date__lt=now().date()).count(),
-        'todays_events': Event.objects.filter(date=now().date()),
-    })
+@login_required
+@allowed_roles(roles=['Admin', 'Organizer'])
+def manage_events(request):
+    events = Event.objects.all()
+    return render(request, 'events/event_list.html', {'events': events})
 
 
-
-def event_statistics(request):
-    return JsonResponse({
-        "total_events": Event.objects.count(),
-        "total_participants": Participant.objects.count()
-    })
-
-
-
-
-# Category CRUD
-# @login_required(login_url='login')
-# @user_passes_test(is_admin, login_url='no-permission')
-# def category_list(request):
-#     return render(request, 'events/category_list.html', {'categories': Category.objects.all()})
-
-# def category_create(request):
-#     form = CategoryForm(request.POST or None)
-#     if form.is_valid():
-#         form.save()
-#         return redirect('category_list')
-#     return render(request, 'events/category_form.html', {'form': form})
-
-# def category_update(request, pk):
-#     category = get_object_or_404(Category, pk=pk)
-#     form = CategoryForm(request.POST or None, instance=category)
-#     if form.is_valid():
-#         form.save()
-#         return redirect('category_list')
-#     return render(request, 'events/category_form.html', {'form': form})
-
-# def category_delete(request, pk):
-#     category = get_object_or_404(Category, pk=pk)
-#     if request.method == "POST":
-#         category.delete()
-#         return redirect('category_list')
-#     return render(request, 'events/category_confirm_delete.html', {'category': category})
-
-
-def is_admin(user):
-    return user.is_authenticated and user.groups.filter(name="Admin").exists()
-
-class AdminRequiredMixin(View):
-   
-
-    @method_decorator(login_required(login_url='login'), name='dispatch')
-    @method_decorator(user_passes_test(is_admin, login_url='no-permission'), name='dispatch')
-    def dispatch(self, *args, **kwargs):
-        return super().dispatch(*args, **kwargs)
-
-
-class CategoryListView(AdminRequiredMixin, ListView):
+# Category Views
+class CategoryListView(LoginRequiredMixin, UserPassesTestMixin, ListView):
     model = Category
     template_name = 'events/category_list.html'
     context_object_name = 'categories'
 
-class CategoryCreateView(AdminRequiredMixin, CreateView):
+    def test_func(self):
+        return is_admin_or_organizer(self.request.user)
+
+
+class CategoryCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
     model = Category
     form_class = CategoryForm
     template_name = 'events/category_form.html'
     success_url = reverse_lazy('category_list')
 
-class CategoryUpdateView(AdminRequiredMixin, UpdateView):
+    def test_func(self):
+        return is_admin_or_organizer(self.request.user)
+
+
+class CategoryUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     model = Category
     form_class = CategoryForm
     template_name = 'events/category_form.html'
     success_url = reverse_lazy('category_list')
 
-class CategoryDeleteView(AdminRequiredMixin, DeleteView):
+    def test_func(self):
+        return self.request.user.groups.filter(name="Admin").exists()
+
+
+class CategoryDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
     model = Category
     template_name = 'events/category_confirm_delete.html'
     success_url = reverse_lazy('category_list')
 
+    def test_func(self):
+        return self.request.user.groups.filter(name="Admin").exists()
 
-
-
-def event_stats(request):
-    total_events = Event.objects.count()
-    total_participants = Participant.objects.count()
-    upcoming_events = Event.objects.filter(date__gte=date.today()).count()
-    past_events = Event.objects.filter(date__lt=date.today()).count()
-    
-    return JsonResponse({
-        "total_events": total_events,
-        "total_participants": total_participants,
-        "upcoming_events": upcoming_events,
-        "past_events": past_events
-    })
-
-
-def filter_events(request, event_type):
-    if event_type == "upcoming":
-        events = Event.objects.filter(date__gte=date.today())
-    elif event_type == "past":
-        events = Event.objects.filter(date__lt=date.today())
-    else:  
-        events = Event.objects.all()
-
-    event_list = [{"name": event.name, "date": event.date.strftime("%Y-%m-%d")} for event in events]
-    return JsonResponse({"events": event_list})
-
-
-
-
-# @login_required
-# def participant_list(request):
-#     rsvp_events = RSVP.objects.filter(user=request.user)
-#     participants = Participant.objects.all()
-#     return render(request, "events/participant_list.html", {"participants": participants})
-#     # events = Event.objects.filter(participants=request.user)
-#     # participants = User.objects.filter(events_participated__in=events).distinct()
-#     # return render(request, 'events/participant_list.html', {
-#     #     'rsvp_events': rsvp_events,
-#     #     'participants': participants,
-
-#     # })
-
-
-
-
-# def participant_create(request):
-#     if request.method == "POST":
-#         name = request.POST.get("name", "").strip()  
-#         email = request.POST.get("email", "").strip()
-
-#         if not name or not email:
-#             messages.error(request, "Name and Email are required!")
-#         elif Participant.objects.filter(email=email).exists():
-#             messages.error(request, "A participant with this email already exists!")
-#         else:
-#             Participant.objects.create(name=name, email=email)
-#             messages.success(request, "Participant successfully created!")
-#             return redirect("participants_list")
-
-#     return render(request, "events/participant_form.html")
-
-
-# def participant_delete(request, pk):
-#     user = get_object_or_404(User, pk=pk)
-#     if request.method == "POST":
-#         user.delete()
-#         return redirect('participant_list')
-#     return render(request, 'events/participant_confirm_delete.html', {'user': user})
-
-
-def search_events(request):
-    query = request.GET.get('q', '')
-    events = Event.objects.filter(name__icontains=query) | Event.objects.filter(location__icontains=query)
-    return render(request, 'events/event_list.html', {'events': events, 'query': query})
 
 class ParticipantListView(LoginRequiredMixin, ListView):
     model = Participant
@@ -373,56 +169,24 @@ class ParticipantDeleteView(DeleteView):
         return get_object_or_404(User, pk=self.kwargs["pk"])
 
 
+def search_events(request):
+    query = request.GET.get('q', '')
+    events = Event.objects.filter(name__icontains=query) | Event.objects.filter(location__icontains=query)
+    return render(request, 'events/event_list.html', {'events': events, 'query': query})
 
-
-
-def is_admin(user):
-    return user.is_superuser  
-
-@user_passes_test(is_admin)
-def manage_events(request):
-    events = Event.objects.all()  
-    return render(request, 'events/event_list.html', {'events': events})
-
-
-
-
+# RSVP Views
 @login_required
 def rsvp_event(request, event_id):
     event = get_object_or_404(Event, id=event_id)
 
-    # Check if the user has already RSVP'd
     if RSVP.objects.filter(user=request.user, event=event).exists():
         messages.warning(request, "You have already RSVP'd for this event.")
-        return redirect('event_detail', event_id=event.id)
-
-    # Save RSVP
-    RSVP.objects.create(user=request.user, event=event)
-    event.participants.add(request.user)
-    messages.success(request, f"You have successfully RSVP'd for {event.name}.")
-
-    # Send Confirmation Email
-    # send_mail(
-    #     subject="Event RSVP Confirmation",
-    #     message=f"Dear {request.user.username},\n\nYou have successfully RSVP'd for {event.name} on {event.date} at {event.time}.\n\nThank you!",
-    #     from_email="noreply@example.com",
-    #     recipient_list=[request.user.email],
-    #     fail_silently=True,
-    # )
+    else:
+        RSVP.objects.create(user=request.user, event=event)
+        event.participants.add(request.user)
+        messages.success(request, f"You have successfully RSVP'd for {event.name}.")
 
     return redirect('event_detail', event_id=event.id)
-
-
-
-
-@login_required
-def participant_dashboard(request):
-    rsvp_events = request.user.rsvps.all()
-    print(rsvp_event)
-    return render(request, 'events/participant_list.html', {'rsvp_events': rsvp_events})
-
-
-
 
 
 @login_required
@@ -432,8 +196,87 @@ def cancel_rsvp(request, event_id):
 
     if rsvp:
         rsvp.delete()
-        event.participants.remove(request.user)  
+        event.participants.remove(request.user)
         messages.success(request, "Your RSVP has been canceled.")
 
-    return redirect('participant_list')  
+    return redirect('participant_list')
 
+
+# Statistics & Filtering Views
+def event_stats(request):
+    print("event_stats view is being hit")
+    return JsonResponse({
+        "total_events": Event.objects.count(),
+        "total_participants": Participant.objects.count(),  # Use Participant model
+        "upcoming_events": Event.objects.filter(date__gte=timezone.now().date()).count(),
+        "past_events": Event.objects.filter(date__lt=timezone.now().date()).count()
+    })
+
+
+def filter_events(request, event_type):
+    if event_type == "all":
+        events = Event.objects.all()  
+    elif event_type == "upcoming":
+        events = Event.objects.filter(date__gte=date.today())
+    elif event_type == "past":
+        events = Event.objects.filter(date__lt=date.today())
+    else:
+        return JsonResponse({"error": "Invalid event type"}, status=400)
+
+    event_list = [{"name": event.name, "date": event.date.strftime("%Y-%m-%d")} for event in events]
+    return JsonResponse({"events": event_list})
+
+
+
+
+@login_required
+def dashboard(request):
+    # Get the total counts in a more optimized way
+    total_event = Event.objects.count()
+    upcoming_event = Event.objects.filter(date__gte=timezone.now().date()).count()
+    past_event = Event.objects.filter(date__lt=timezone.now().date()).count()
+    total_participant = Participant.objects.aggregate(total=Count('user'))['total']  
+    # Get RSVP events for the user
+    user_rsvp_events = request.user.rsvps.values_list('event', flat=True)
+    
+    # Getting participant count for each event (optimized)
+    event_participants = {event.id: event.participants.count() for event in Event.objects.all()}
+
+    counts = {
+        'total_events': total_event,
+        'upcoming_events': upcoming_event,
+        'past_events': past_event,
+        'total_participant': total_participant
+    }
+
+    context = {
+        'user_rsvp_events': Event.objects.filter(id__in=user_rsvp_events),
+        'counts': counts,
+        'event_participants': event_participants
+    }
+
+    return render(request, 'events/dashboard.html', context)
+
+# View for handling AJAX request for total events
+def total_events(request):
+    events = Event.objects.all().values('name')
+    event_list = list(events)
+    return JsonResponse({'total_events': event_list})
+
+# View for handling AJAX request for total participants
+def total_participants(request):
+    participants = Participant.objects.all().values('name', 'email')
+    participant_list = list(participants)
+    return JsonResponse({'total_participant': participant_list})
+
+# View for handling AJAX request for upcoming events with name and date
+def upcoming_events(request):
+    upcoming_events = Event.objects.filter(date__gte=timezone.now().date()).values('name', 'date')
+    upcoming_event_list = list(upcoming_events)
+    return JsonResponse({'upcoming_events': upcoming_event_list})
+
+# View for handling AJAX request for past events
+def past_events(request):
+    past_events = Event.objects.filter(date__lt=timezone.now().date()).values('name', 'date')
+    past_event_list = list(past_events)
+    return JsonResponse({'past_events': past_event_list})
