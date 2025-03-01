@@ -1,7 +1,6 @@
-# users/templatetags/custom_filters.py
 from django import template
 from django.utils import timezone
-from datetime import datetime
+from datetime import datetime, timedelta
 
 register = template.Library()
 
@@ -12,7 +11,7 @@ def humanized_date(value):
             value = timezone.localtime(value)
 
         today = timezone.localtime(timezone.now()).date()
-        yesterday = today.replace(day=today.day - 1)
+        yesterday = today - timedelta(days=1)  
 
         if value.date() == today:
             return f"Today at {value.strftime('%I:%M %p')}"
@@ -20,4 +19,5 @@ def humanized_date(value):
             return f"Yesterday at {value.strftime('%I:%M %p')}"
         else:
             return f"{value.date().strftime('%B %d')}, {value.strftime('%I:%M %p')}"
+    
     return "No login record available"
