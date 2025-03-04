@@ -4,26 +4,20 @@ from django.core.validators import RegexValidator
 from django.utils.translation import gettext_lazy as _
 import os
 
-def default_profile_picture():
-    return 'profile_pics/default.jpg'  # Ensure this file exists in media directory
-
 class CustomUser(AbstractUser):
+    # Phone number and profile picture are already here
     phone_regex = RegexValidator(
         regex=r'^\+?1?\d{9,15}$',
         message=_("Enter a valid phone number (9-15 digits, with optional + prefix).")
     )
 
     phone_number = models.CharField(
-    max_length=15,
-    unique=True,
-    validators=[RegexValidator(
-        regex=r'^\+?1?\d{9,15}$',
-        message=_("Enter a valid phone number (9-15 digits, with optional + prefix).")
-    )],
-    blank=True, 
-    null=True
-)
-
+        max_length=15,
+        unique=True,
+        validators=[phone_regex],
+        blank=True, 
+        null=True
+    )
 
     profile_picture = models.ImageField(
         upload_to='profile_pics/', 
@@ -32,6 +26,19 @@ class CustomUser(AbstractUser):
     )
 
     bio = models.TextField(blank=True, null=True)
+
+    # New role field
+    ROLE_CHOICES = [
+        ('user', 'User'),
+        ('admin', 'Admin'),
+        ('moderator', 'Moderator'),
+    ]
+
+    role = models.CharField(
+        max_length=20,
+        choices=ROLE_CHOICES,
+        default='user',  # Default role is 'user'
+    )
 
     def __str__(self):
         return self.username
