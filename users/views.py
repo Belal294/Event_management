@@ -65,17 +65,20 @@ def signup_view(request):
     if request.method == "POST":
         form = SignupForm(request.POST, request.FILES)  
         if form.is_valid():
-            User = get_user_model()  
+            User = get_user_model()
             user = form.save(commit=False)
-            user.set_password(form.cleaned_data["password"])  
-            user.save()  
-            return redirect("login") 
+            user.set_password(form.cleaned_data["password"])
+
+            # Set a default value for 'role' if it's not provided in the form
+            user.role = 'default_role'  # Set a default role (adjust as needed)
+
+            user.save()
+            return redirect("login")
         
     else:
         form = SignupForm()
     
     return render(request, "registration/signup.html", {"form": form})
-
 
 def is_admin(user):
     return user.groups.filter(name='Admin').exists()
