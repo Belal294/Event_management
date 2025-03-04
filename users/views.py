@@ -22,17 +22,17 @@ from users.forms import CustomUserCreationForm, CustomRegistrationForm, AssignRo
 from django.views.generic import TemplateView, UpdateView
 
 
-def sign_up(request):
-    if request.method == "POST":
-        form = CustomUserCreationForm(request.POST, request.FILES)
-        if form.is_valid():
-            user = form.save()
-            login(request, user)
-            return redirect('dashboard')  
-    else:
-        form = CustomUserCreationForm()
+# def sign_up(request):
+#     if request.method == "POST":
+#         form = CustomUserCreationForm(request.POST, request.FILES)
+#         if form.is_valid():
+#             user = form.save()
+#             login(request, user)
+#             return redirect('dashboard')  
+#     else:
+#         form = CustomUserCreationForm()
     
-    return render(request, "regisration/register.html", {"form": form})
+#     return render(request, "registration/register.html", {"form": form})
 
 
 
@@ -63,13 +63,13 @@ def sign_out(request):
 
 def signup_view(request):
     if request.method == "POST":
-        form = SignupForm(request.POST)
+        form = SignupForm(request.POST, request.FILES)  
         if form.is_valid():
             User = get_user_model()  
             user = form.save(commit=False)
             user.set_password(form.cleaned_data["password"])  
             user.save()  
-            return redirect("login")  
+            return redirect("login") 
         
     else:
         form = SignupForm()
@@ -99,25 +99,38 @@ def admin_dashboard(request):
     })
 
 
-def assing_role(request, user_id):
-    user = get_object_or_404(User, id=user_id)
-    form = AssignRoleForm()
+# def assing_role(request, user_id):
+#     user = get_object_or_404(User, id=user_id)
+#     form = AssignRoleForm()
 
+#     if request.method == 'POST':
+#         form = AssignRoleForm(request.POST)  
+#         if form.is_valid():
+#             role = form.cleaned_data.get('role')  
+            
+#             user.groups.clear()
+#             user.groups.add(role)
+            
+#             messages.success(request, f"User {user.username} has been assigned to the {role.name} role.")
+            
+#             return redirect('admin-dashboard')  
+    
+#     return render(request, 'admin/assign_role.html', {'form': form, 'user': user})
+
+
+
+def assing_role(request, user_id):
+    user = get_object_or_404(User, id=user_id)  
+    form = AssignRoleForm()
     if request.method == 'POST':
         form = AssignRoleForm(request.POST)  
         if form.is_valid():
             role = form.cleaned_data.get('role')  
-            
             user.groups.clear()
-            user.groups.add(role)
-            
+            user.groups.add(role)  
             messages.success(request, f"User {user.username} has been assigned to the {role.name} role.")
-            
             return redirect('admin-dashboard')  
-    
     return render(request, 'admin/assign_role.html', {'form': form, 'user': user})
-
-
 
 
 class CreateGroupView(LoginRequiredMixin, UserPassesTestMixin, CreateView):

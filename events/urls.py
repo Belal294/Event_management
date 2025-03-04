@@ -6,11 +6,11 @@ from .views import (
     CategoryListView, CategoryCreateView, CategoryUpdateView, CategoryDeleteView, ParticipantListView, ParticipantCreateView, ParticipantDeleteView,
     
 )
-from users.views import sign_up, sign_in, sign_out, signup_view, admin_dashboard
+from users.views import sign_in, sign_out, signup_view, admin_dashboard
 
 urlpatterns = [
     #  Authentication URLs
-    path('sign-up/', sign_up, name='sign-up'),
+    # path('sign-up/', sign_up, name='sign-up'),
     path('login/', sign_in, name='login'),
     path('logout/', sign_out, name='logout'),
     path("signup/", signup_view, name="signup"),
